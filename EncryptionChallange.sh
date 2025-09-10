@@ -1,48 +1,51 @@
-partialKey=""
-
+#!/bin/bash
 function generateKey(){
-randomiser=$(shuf -i 1-3 -n 1)
-case $randomiser in
+randomiser=$(shuf -i 1-4 -n 1)
+case randomiser in
  1)
  #MD5 Hash
- partialKey=$(tr -dc A-Za-z </dev/urandom | head -c 16)
- return $partialKey | md5sum;;
+ echo $1 | md5sum;;
  2)
  #Base64 String
- partialKey=$(tr -dc A-Za-z </dev/urandom | head -c 16)
- return $partialKey | base64;;
+ echo $1 | base64;;
  3)
- #Sha512 Hash
- partialKey=$(tr -dc A-Za-z </dev/urandom | head -c 16)
- return $partialKey | sha512sum;;
+ #SHA512 Hash
+ echo $1 | sha512sum;;
  4)
- #Sha1 Hash
- partialKey=$(tr -dc A-Za-z </dev/urandom | head -c 16)
- return $partialKey | sha1sum;;
+ #SHA1 Hash
+ echo $1 | sha1sum;;
 esac
 }
 
 function challangeSetup(){
-#Creates a directory within the desktop to make it easier to access the files
-if [[ ! -d "/home/$USER/Desktop/EncryptionChallange" ]]; then
+if [[ ! -d /home/$USER/Desktop/EncryptionChallange ]]; then
  mkdir /home/$USER/Desktop/EncryptionChallange
  cd /home/$USER/Desktop/EncryptionChallange
 else
  cd /home/$USER/Desktop/EncryptionChallange
 fi
 
-#Creates the first file and echos its partial password to get the user going
-touch File1.txt
-key="$(generateKey)" | echo "$partialKey" > File1.txt
-ccrypt -f "File1.txt" -K "$key" > /dev/null 2&1
-echo "The partial password for File1 is $partialKey"
-
-for (( i = 1 ; i <=4 ; i++)); do 
- key="$(generateKey)"
- touch File$i.txt | echo "$partialKey" > File$i.txt
- ccrypt -f "$file" -K "$key" > /dev/null 2&1
+for i in {1..5}; do
+ touch File$i.txt
+ partialKey=$(tr -dc A-Za-z </dev/urandom | head -c 16)
+ if [[ $i -eq 1 ]]; then
+  key=$(generateKey $partialKey)
+  echo "The partial key for the first file is $partialKey"
+  next_key=$(generateKey $partialKey)
+  echo "Here is the partial key for the next file $partialKey" > File$i.txt
+  ccrypt -f "File$i.txt" -K "$key" > /dev/null 2>&1
+ elif [[ $i -eq 5 ]]; then
+  key=$next_key
+  echo "You decrypted all the files! Well done!" > File$i.txt
+  ccrypt -f "File$i.txt" -K "$key" > /dev/null 2>&1
+ else
+  key=$next_key
+  next_key=$(generateKey $partialKey)
+  echo "Here is the partial key for the next file $partialKey" > File$i.txt
+  ccrypt -f "File$i.txt" -K "$key" > /dev/null 2>&1
+ fi
 done
-echo "Files ready. Have fun and good luck!"
+echo "The files are ready. Have fun and good luck!"
 }
 
-challangeSetup()
+challangeSetup
