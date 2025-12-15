@@ -1,19 +1,19 @@
 #!/bin/bash
 function generateKey(){
 randomiser=$(shuf -i 1-4 -n 1)
-case randomiser in
+case $randomiser in
  1)
  #MD5 Hash
- echo $1 | md5sum | cut -d' ' -f1;;
+ echo -n $1 | md5sum | cut -d' ' -f1;;
  2)
  #Base64 String
- echo $1 | base64 cut -d' ' -f1;;
+ echo -n $1 | base64 | cut -d' ' -f1;;
  3)
  #SHA512 Hash
- echo $1 | sha512sum cut -d' ' -f1;;
+ echo -n $1 | sha512sum | cut -d' ' -f1;;
  4)
  #SHA1 Hash
- echo $1 | sha1sum cut -d' ' -f1;;
+ echo -n $1 | sha1sum | cut -d' ' -f1;;
 esac
 }
 
